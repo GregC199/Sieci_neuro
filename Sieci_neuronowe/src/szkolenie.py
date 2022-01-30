@@ -14,6 +14,7 @@ from keras.models import Sequential, load_model
 from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
 from tensorflow.keras.models import load_model
 
+#AMD GPU LOAD for NVidia comment this part
 import plaidml.keras
 os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
 plaidml.keras.install_backend()
@@ -26,9 +27,10 @@ plaidml.keras.install_backend()
 #time of model compiling and fitting 3166.5209441184998 <- pc 39 epok
 
 #V2 time of model compiling and fitting 2636.5357625484467 V2 <- pc 39 epok
+#V2 time of model compiling and fitting 940.6681196689606 <- pc 15 epok
 
 epochs = 3
-data =[]
+data = []
 labels = []
 classes =43
 warunek = 1
@@ -63,7 +65,7 @@ y_test = to_categorical(y_test,43)
 start = time.time()
 while warunek:
   if os.path.exists('traffic_signs_recognition_model.h5'):
-    model = load_model('traffic_signs_recognition_model.h5')
+    model = model_best
     history = model.fit(X_train, y_train, batch_size=16, epochs=epochs, validation_data=(X_test, y_test), verbose=2)
     print('training done nr ' , i, '\n')
     h_acc = history.history
@@ -76,6 +78,7 @@ while warunek:
     if (val_acc+hysteresis) > val_acc_p:
       if val_acc > val_acc_p:
         model.save('traffic_signs_recognition_model.h5')
+        model_best = model
         print('saving model\n')
         val_acc_p = val_acc
     else:
@@ -100,6 +103,7 @@ while warunek:
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     history = model.fit(X_train, y_train, batch_size=16, epochs=epochs, validation_data=(X_test, y_test), verbose=2)
     model.save('traffic_signs_recognition_model.h5')
+    model_best = model
     print('saving initial model\n')
     h_acc = history.history
     try:
