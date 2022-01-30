@@ -16,7 +16,7 @@ from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import load_model
 
-#AMD GPU LOAD for NVidia comment this part
+#AMD GPU LOAD for Nvidia comment this part
 import plaidml.keras
 os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
 plaidml.keras.install_backend()
