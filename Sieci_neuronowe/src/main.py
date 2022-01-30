@@ -14,13 +14,26 @@ from keras.models import Sequential, load_model
 from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
 from tensorflow.keras.models import load_model
 
+import plaidml.keras
+os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
+plaidml.keras.install_backend()
+#time of model compiling and fitting 368.7651810646057 <- Colab 36 epok
+#time of model compiling and fitting 449.4745554924011 <- 36 colab
+#time of model compiling and fitting 192.18873286247253 <- 15 colab
 
-epochs = 1
+#time of model compiling and fitting 1943.9675946235657  <- pc 63 epoki
+#time of model compiling and fitting 917.3103170394897   <- pc 12 epok
+#time of model compiling and fitting 3166.5209441184998 <- pc 39 epok
+
+#V2 time of model compiling and fitting 2636.5357625484467 V2 <- pc 39 epok
+
+epochs = 3
 data =[]
 labels = []
 classes =43
 warunek = 1
 val_acc_p = 0.0
+hysteresis = 0.03
 cur_path = os.getcwd()
 print(cur_path)
 for i in range(classes):     
@@ -53,9 +66,14 @@ while warunek:
     model = load_model('traffic_signs_recognition_model.h5')
     history = model.fit(X_train, y_train, batch_size=16, epochs=epochs, validation_data=(X_test, y_test), verbose=2)
     print('training done nr ' , i, '\n')
-    acc = history.history['val_accuracy']
+    h_acc = history.history
+    try:
+        acc = h_acc['val_acc']
+    except Exception as e:
+        print(e)
+        acc = h_acc['val_accuracy']
     val_acc = acc[-1]
-    if (val_acc+0.02) > val_acc_p:
+    if (val_acc+hysteresis) > val_acc_p:
       if val_acc > val_acc_p:
         model.save('traffic_signs_recognition_model.h5')
         print('saving model\n')
@@ -80,10 +98,17 @@ while warunek:
     model.add(Dense(43, activation='softmax'))
 
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-    history = model.fit(X_train, y_train, batch_size=16, epochs=epochs, validation_data=(X_test, y_test))
+    history = model.fit(X_train, y_train, batch_size=16, epochs=epochs, validation_data=(X_test, y_test), verbose=2)
     model.save('traffic_signs_recognition_model.h5')
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
+    print('saving initial model\n')
+    h_acc = history.history
+    try:
+        acc = h_acc['val_acc']
+    except Exception as e:
+        print(e)
+        acc = h_acc['val_accuracy']
+    val_acc = acc[-1]
+    val_acc_p = val_acc
 
     i = epochs
 
